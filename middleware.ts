@@ -22,6 +22,28 @@ export default withAuth(
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");
 
+    // Content Security Policy to prevent XSS and other attacks
+    const cspHeader = `
+      default-src 'self';
+      script-src 'self' ${
+        process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""
+      } 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+      img-src 'self' data: blob: https://image.tmdb.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://api.themoviedb.org https://vercel.live https://vitals.vercel-insights.com;
+      media-src 'self' https://www.youtube.com https://youtube.com;
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-ancestors 'none';
+      upgrade-insecure-requests;
+    `
+      .replace(/\s{2,}/g, " ")
+      .trim();
+
+    response.headers.set("Content-Security-Policy", cspHeader);
+
     // Protect admin routes
     if (path.startsWith("/admin") && !isAdmin) {
       return NextResponse.redirect(new URL("/dashboard", req.url));
