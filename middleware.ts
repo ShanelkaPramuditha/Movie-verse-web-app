@@ -22,26 +22,16 @@ export default withAuth(
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");
 
-    // Anti-clickjacking headers
-    response.headers.set("X-XSS-Protection", "1; mode=block");
-    response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
-    response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
-    response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
-    response.headers.set(
-      "Permissions-Policy",
-      "camera=(), microphone=(), geolocation=()"
-    );
-
     // Content Security Policy to prevent XSS and other attacks
     const cspHeader = `
       default-src 'self';
       script-src 'self' ${
         process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""
-      } https://vercel.live https://va.vercel-scripts.com https://www.google.com https://fonts.googleapis.com;
+      } 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src 'self' data: blob: https: http:;
-      font-src 'self' https://fonts.gstatic.com data:;
-      connect-src 'self' https://api.themoviedb.org https://vercel.live https://vitals.vercel-insights.com https://www.google.com;
+      img-src 'self' data: blob: https://image.tmdb.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
+      font-src 'self' https://fonts.gstatic.com;
+      connect-src 'self' https://api.themoviedb.org https://vercel.live https://vitals.vercel-insights.com;
       media-src 'self' https://www.youtube.com https://youtube.com;
       object-src 'none';
       base-uri 'self';
@@ -75,13 +65,9 @@ export default withAuth(
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     */
-    "/((?!_next/static|_next/image|favicon.ico).*)",
+    "/dashboard/:path*",
+    "/admin/:path*",
+    "/api/:path*",
+    "/movies/:path*",
   ],
 };
