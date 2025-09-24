@@ -9,9 +9,9 @@ export async function OPTIONS(request: NextRequest) {
   return handleCorsPreflightRequest(request);
 }
 
-export async function POST(request: NextRequest, req: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { email, password, name, role = 'user' } = await req.json();
+    const { email, password, name, role = 'user' } = await request.json();
 
     await connectDB();
 
@@ -20,7 +20,8 @@ export async function POST(request: NextRequest, req: Request) {
       const response = NextResponse.json(
         { error: 'User already exists' },
         { status: 400 }
-      ); return addCorsHeaders(response, request);
+      ); 
+      return addCorsHeaders(response, request);
     }
 
     const user = await User.create({
@@ -40,11 +41,13 @@ export async function POST(request: NextRequest, req: Request) {
         },
       },
       { status: 201 }
-    ); return addCorsHeaders(response, request);
+    ); 
+    return addCorsHeaders(response, request);
   } catch (error: any) {
     const response = NextResponse.json(
       { error: error.message },
       { status: 500 }
-    ); return addCorsHeaders(response, request);
+    ); 
+    return addCorsHeaders(response, request);
   }
 }

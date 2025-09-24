@@ -49,18 +49,20 @@ export async function OPTIONS(request: NextRequest) {
   return handleCorsPreflightRequest(request);
 }
 
-export async function PUT(request: NextRequest, req: Request,
+export async function PUT(
+  request: NextRequest,
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); 
+      return addCorsHeaders(response, request);
     }
 
     const { id, itemId } = await params;
 
-    const { name, movieId, releaseDate, imageUrl } = await req.json();
+    const { name, movieId, releaseDate, imageUrl } = await request.json();
 
     await connectDB();
     const watchlist = await WatchList.findOneAndUpdate(
@@ -96,13 +98,15 @@ export async function PUT(request: NextRequest, req: Request,
 }
 
 // Remove item from watchlist
-export async function DELETE(request: NextRequest, req: Request,
+export async function DELETE(
+  request: NextRequest,
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); 
+      return addCorsHeaders(response, request);
     }
 
     const { id, itemId } = await params;
