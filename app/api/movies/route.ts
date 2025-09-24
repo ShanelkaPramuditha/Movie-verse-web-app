@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import {
   getTrendingMovies,
   getUpcomingMovies,
@@ -6,8 +6,13 @@ import {
   searchMovies,
   Movie,
 } from "@/lib/tmdb";
+import { handleCorsPreflightRequest, addCorsHeaders } from "@/lib/utils/cors";
 
-export async function GET(request: Request) {
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
+export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const action = searchParams.get("action");
   const id = searchParams.get("id");
@@ -68,18 +73,21 @@ export async function GET(request: Request) {
     }
 
     if (data && data.length > 0) {
-      return NextResponse.json({ data });
+      const response = NextResponse.json({ data });
+      return addCorsHeaders(response, request);
     } else {
-      return NextResponse.json({ error: "Data not found" }, { status: 404 });
+      const response = NextResponse.json({ error: "Data not found" }, { status: 404 });
+      return addCorsHeaders(response, request);
     }
   } catch (error) {
     console.error("Error in API handler:", error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         error: "An error occurred while processing your request",
         details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );
+    return addCorsHeaders(response, request);
   }
 }

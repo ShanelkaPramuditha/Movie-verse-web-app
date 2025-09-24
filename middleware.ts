@@ -11,6 +11,17 @@ export default withAuth(
     // Create response with security headers
     const response = NextResponse.next();
 
+    // Strict-Transport-Security Header - Fix HSTS Missing
+    const isProduction = process.env.NODE_ENV === "production";
+    const isHTTPS = req.nextUrl.protocol === "https:";
+    
+    if (isProduction || isHTTPS) {
+      response.headers.set(
+        "Strict-Transport-Security",
+        "max-age=31536000; includeSubDomains; preload"
+      );
+    }
+
     // Add security headers to prevent data leakage
     response.headers.set("X-Content-Type-Options", "nosniff");
     response.headers.set("X-Frame-Options", "DENY");
