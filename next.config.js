@@ -12,6 +12,10 @@ const nextConfig = {
     ],
   },
   async headers() {
+    // Get the allowed origin from environment variable or default to localhost for dev
+    const allowedOrigin = process.env.NEXT_PUBLIC_SERVER_URL || 
+                         (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://movie-verse-web-app.vercel.app');
+    
     return [
       {
         source: "/(.*)",
@@ -81,7 +85,7 @@ const nextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: allowedOrigin,
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -98,7 +102,7 @@ const nextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: allowedOrigin,
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -115,7 +119,7 @@ const nextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: allowedOrigin,
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -132,7 +136,7 @@ const nextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: allowedOrigin,
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -149,7 +153,7 @@ const nextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: allowedOrigin,
           },
           {
             key: "Access-Control-Allow-Methods",
@@ -166,7 +170,7 @@ const nextConfig = {
         headers: [
           {
             key: "Access-Control-Allow-Origin",
-            value: "*",
+            value: allowedOrigin,
           },
           {
             key: "Access-Control-Allow-Methods",
