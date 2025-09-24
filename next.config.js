@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  poweredByHeader: false, // Remove X-Powered-By header for security
   eslint: {
     ignoreDuringBuilds: true,
   },
