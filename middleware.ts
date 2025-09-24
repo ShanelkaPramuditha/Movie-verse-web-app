@@ -33,6 +33,16 @@ export default withAuth(
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");
 
+    // Anti-clickjacking headers
+    response.headers.set("X-Frame-Options", "DENY");
+    response.headers.set("Frame-Options", "DENY");
+
+    // Additional security headers
+    response.headers.set("X-XSS-Protection", "1; mode=block");
+    response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
+    response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
+    response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
+
     // Content Security Policy to prevent XSS and other attacks
     const cspHeader = `
       default-src 'self';
