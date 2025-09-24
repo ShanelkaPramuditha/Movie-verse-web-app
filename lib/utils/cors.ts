@@ -10,6 +10,14 @@ const allowedOrigins = [
 export function addCorsHeaders(response: NextResponse, request: NextRequest): NextResponse {
   const origin = request.headers.get('origin');
 
+  // Add HSTS header for production HTTPS
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=63072000; includeSubDomains; preload'
+    );
+  }
+
   // Only allow specific trusted origins
   if (origin && allowedOrigins.includes(origin)) {
     response.headers.set('Access-Control-Allow-Origin', origin);
@@ -30,6 +38,15 @@ export function handleCorsPreflightRequest(request: NextRequest): NextResponse {
   
   if (origin && allowedOrigins.includes(origin)) {
     const headers = new Headers();
+    
+    // Add HSTS header for production HTTPS
+    if (process.env.NODE_ENV === 'production') {
+      headers.set(
+        'Strict-Transport-Security',
+        'max-age=63072000; includeSubDomains; preload'
+      );
+    }
+    
     headers.set('Access-Control-Allow-Origin', origin);
     headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-CSRF-Token, X-Requested-With');
