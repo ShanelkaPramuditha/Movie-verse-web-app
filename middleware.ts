@@ -27,9 +27,12 @@ export default withAuth(
     response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
     response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
     response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
-    response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    response.headers.set(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=()"
+    );
 
-    // Content Security Policy to prevent XSS and other attacks  
+    // Content Security Policy to prevent XSS and other attacks
     const cspHeader = `
       default-src 'self';
       script-src 'self' ${
