@@ -46,12 +46,28 @@ const nextConfig = {
             value: "DENY",
           },
           {
+            key: "Frame-Options",
+            value: "DENY",
+          },
+          {
             key: "X-XSS-Protection",
             value: "1; mode=block",
           },
           {
             key: "Referrer-Policy",
             value: "strict-origin-when-cross-origin",
+          },
+          {
+            key: "X-Permitted-Cross-Domain-Policies",
+            value: "none",
+          },
+          {
+            key: "Cross-Origin-Opener-Policy",
+            value: "same-origin",
+          },
+          {
+            key: "Cross-Origin-Resource-Policy",
+            value: "cross-origin",
           },
         ],
       },
