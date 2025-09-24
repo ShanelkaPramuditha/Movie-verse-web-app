@@ -29,10 +29,20 @@ export default withAuth(
         record.count += 1;
       } else {
         record.count = 1;
-        record.lastRequest = now;
       }
+      record.lastRequest = now;
     } else {
       ipStore[ip] = { count: 1, lastRequest: now };
+    }
+
+    // Clean up old entries to prevent memory leaks
+    if (Math.random() < 0.01) { // 1% chance to clean up
+      const cutoff = now - WINDOW_MS;
+      Object.keys(ipStore).forEach(key => {
+        if (ipStore[key].lastRequest < cutoff) {
+          delete ipStore[key];
+        }
+      });
     }
 
     if (ipStore[ip].count > RATE_LIMIT) {
@@ -85,7 +95,7 @@ export default withAuth(
         process.env.NODE_ENV === "production" ? "" : "'unsafe-eval'"
       } 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src 'self' data: blob: https://image.tmdb.org https://lh3.googleusercontent.com https://img.youtube.com https://i.ytimg.com;
+      img-src 'self' data: blob: https://image.tmdb.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://img.youtube.com https://i.ytimg.com;
       font-src 'self' https://fonts.gstatic.com;
       connect-src 'self' https://api.themoviedb.org https://vercel.live https://vitals.vercel-insights.com https://www.youtube.com https://youtube.com;
       media-src 'self' https://www.youtube.com https://youtube.com;
