@@ -10,14 +10,14 @@ export async function OPTIONS(request: NextRequest) {
   return handleCorsPreflightRequest(request);
 }
 
-export async function POST(request: NextRequest, req: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getAuthSession();
     if (!session) {
       const response = NextResponse.json({ error: "Please log in" }, { status: 401 }); return addCorsHeaders(response, request);
     }
     await connectDB();
-    const { shareToken } = await req.json();
+    const { shareToken } = await request.json();
     const snapshot = await WatchList.findOne({ shareToken, isSnapshot: true });
     if (!snapshot) {
       const response = NextResponse.json(
@@ -61,3 +61,4 @@ export async function POST(request: NextRequest, req: Request) {
     ); return addCorsHeaders(response, request);
   }
 }
+

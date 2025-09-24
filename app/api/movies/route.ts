@@ -91,3 +91,4 @@ export async function GET(request: NextRequest) {
     return addCorsHeaders(response, request);
   }
 }
+

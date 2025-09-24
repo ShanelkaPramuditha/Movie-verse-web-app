@@ -11,15 +11,16 @@ export async function OPTIONS(request: NextRequest) {
   return handleCorsPreflightRequest(request);
 }
 
-export async function POST(request: NextRequest, req: Request) {
+export async function POST(request: NextRequest) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); 
+      return addCorsHeaders(response, request);
     }
 
     await connectDB(); // Connect to database
-    const { watchlistId } = await req.json(); // Get watchlist ID from request
+    const { watchlistId } = await request.json(); // Get watchlist ID from request
 
     const originalWatchlist = await WatchList.findById(watchlistId);
     if (!originalWatchlist) {
@@ -79,3 +80,4 @@ export async function POST(request: NextRequest, req: Request) {
     ); return addCorsHeaders(response, request);
   }
 }
+
