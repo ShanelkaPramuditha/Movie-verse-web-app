@@ -86,7 +86,11 @@ export default withAuth(
     response.headers.set("X-XSS-Protection", "1; mode=block");
     response.headers.set("X-Permitted-Cross-Domain-Policies", "none");
     response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
-    response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
+    
+    // Only apply restrictive CORS policy to non-API routes
+    if (!path.startsWith("/api")) {
+      response.headers.set("Cross-Origin-Resource-Policy", "cross-origin");
+    }
 
     // Content Security Policy to prevent XSS and other attacks
     const cspHeader = `
