@@ -1,4 +1,4 @@
-import { withAuth } from "next-auth/middleware";
+﻿import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
 
 type RateLimitRecord = {
@@ -13,8 +13,10 @@ const ipStore: Record<string, RateLimitRecord> = {};
 export default withAuth(
   async function middleware(req) {
     const token = req.nextauth.token;
-    const isAdmin = token?.role === "admin";
     const path = req.nextUrl.pathname;
+
+    // Check if user is admin (role: 'admin')
+    const isAdmin = token?.role === "admin";
 
     // -------- RATE LIMITER --------
     const ip =
@@ -27,10 +29,20 @@ export default withAuth(
         record.count += 1;
       } else {
         record.count = 1;
-        record.lastRequest = now;
       }
+      record.lastRequest = now;
     } else {
       ipStore[ip] = { count: 1, lastRequest: now };
+    }
+
+    // Clean up old entries to prevent memory leaks
+    if (Math.random() < 0.01) { // 1% chance to clean up
+      const cutoff = now - WINDOW_MS;
+      Object.keys(ipStore).forEach(key => {
+        if (ipStore[key].lastRequest < cutoff) {
+          delete ipStore[key];
+        }
+      });
     }
 
     if (ipStore[ip].count > RATE_LIMIT) {
@@ -44,21 +56,22 @@ export default withAuth(
     // Create response with security headers
     const response = NextResponse.next();
 
-    // Strict-Transport-Security Header - Fix HSTS Missing
-    const isProduction = process.env.NODE_ENV === "production";
-    const isHTTPS = req.nextUrl.protocol === "https:";
-
-    if (isProduction || isHTTPS) {
+    // HSTS Header (only for production HTTPS)
+    if (process.env.NODE_ENV === "production") {
       response.headers.set(
         "Strict-Transport-Security",
-        "max-age=31536000; includeSubDomains; preload"
+        "max-age=63072000; includeSubDomains; preload"
       );
     }
 
-    // Add security headers to prevent data leakage
+    // Security headers
     response.headers.set("X-Content-Type-Options", "nosniff");
-    response.headers.set("X-Frame-Options", "DENY");
     response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    response.headers.set(
+      "Permissions-Policy",
+      "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=()"
+    );
+    response.headers.set("X-DNS-Prefetch-Control", "off");
     response.headers.set(
       "Cache-Control",
       "private, no-cache, no-store, must-revalidate"
@@ -66,9 +79,8 @@ export default withAuth(
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");
 
-    // Anti-clickjacking headers
-    response.headers.set("X-Frame-Options", "DENY");
-    response.headers.set("Frame-Options", "DENY");
+    // Modified frame options to allow YouTube embeds
+    response.headers.set("X-Frame-Options", "SAMEORIGIN");
 
     // Additional security headers
     response.headers.set("X-XSS-Protection", "1; mode=block");
@@ -80,17 +92,18 @@ export default withAuth(
     const cspHeader = `
       default-src 'self';
       script-src 'self' ${
-        process.env.NODE_ENV === "development" ? "'unsafe-eval'" : ""
+        process.env.NODE_ENV === "production" ? "" : "'unsafe-eval'"
       } 'unsafe-inline' https://vercel.live https://va.vercel-scripts.com;
       style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-      img-src 'self' data: blob: https://image.tmdb.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com;
+      img-src 'self' data: blob: https://image.tmdb.org https://lh3.googleusercontent.com https://avatars.githubusercontent.com https://img.youtube.com https://i.ytimg.com;
       font-src 'self' https://fonts.gstatic.com;
-      connect-src 'self' https://api.themoviedb.org https://vercel.live https://vitals.vercel-insights.com;
+      connect-src 'self' https://api.themoviedb.org https://vercel.live https://vitals.vercel-insights.com https://www.youtube.com https://youtube.com;
       media-src 'self' https://www.youtube.com https://youtube.com;
+      frame-src 'self' https://www.youtube.com https://youtube.com;
       object-src 'none';
       base-uri 'self';
       form-action 'self';
-      frame-ancestors 'none';
+      frame-ancestors 'self';
       upgrade-insecure-requests;
     `
       .replace(/\s{2,}/g, " ")
