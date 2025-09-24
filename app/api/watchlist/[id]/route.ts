@@ -1,18 +1,24 @@
 import mongoose from "mongoose";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { addCorsHeaders, handleCorsPreflightRequest } from "@/lib/utils/cors";
 import { getAuthSession } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import { WatchList } from "@/lib/models/watchlist";
 
 // Add item to watchlist
-export async function POST(
-  req: Request,
+
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
+export async function POST(request: NextRequest, req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
     }
 
     const { name, movieId, releaseDate, imageUrl, moviebackdrop_path } =
@@ -31,10 +37,10 @@ export async function POST(
     });
 
     if (existingWatchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Movie already exists in the watchlist" },
         { status: 400 }
-      );
+      ); return addCorsHeaders(response, request);
     }
     // Update the watchlist by adding the new movie and conditionally updating imageUrl
     const updatedWatchlist = await WatchList.findOneAndUpdate(
@@ -59,28 +65,27 @@ export async function POST(
     );
 
     if (!updatedWatchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Watchlist not found" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
-    return NextResponse.json(updatedWatchlist, { status: 200 });
+    const response = NextResponse.json(updatedWatchlist, { status: 200 }); return addCorsHeaders(response, request);
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ error: "An error occurred" }, { status: 500 });
+    const response = NextResponse.json({ error: "An error occurred" }, { status: 500 }); return addCorsHeaders(response, request);
   }
 }
 
 // update watchlist image
-export async function PUT(
-  req: Request,
+export async function PUT(request: NextRequest, req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
     }
 
     const { imageUrl } = await req.json();
@@ -96,27 +101,26 @@ export async function PUT(
     );
 
     if (!watchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Watchlist not found" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
-    return NextResponse.json(watchlist);
+    const response = NextResponse.json(watchlist); return addCorsHeaders(response, request);
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Server error" }, { status: 500 }); return addCorsHeaders(response, request);
   }
 }
 
 // Get all items in watchlist
-export async function GET(
-  req: Request,
+export async function GET(request: NextRequest, req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
     }
 
     await connectDB();
@@ -128,31 +132,30 @@ export async function GET(
       userId: session.user.id,
     });
     if (!watchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Watchlist not found" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
-    return NextResponse.json(watchlist);
+    const response = NextResponse.json(watchlist); return addCorsHeaders(response, request);
   } catch (error: any) {
     console.log(`Error type: ${error.constructor.name}`);
     if (error.name === "BSONError") {
-      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+      const response = NextResponse.json({ error: "Invalid ID" }, { status: 400 }); return addCorsHeaders(response, request);
     }
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Server error" }, { status: 500 }); return addCorsHeaders(response, request);
   }
 }
 
 // Delete watchlist
-export async function DELETE(
-  req: Request,
+export async function DELETE(request: NextRequest, req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
     }
 
     const { id } = await params;
@@ -164,14 +167,14 @@ export async function DELETE(
     });
 
     if (!watchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Watchlist not found" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
-    return NextResponse.json({ message: "Watchlist deleted successfully" });
+    const response = NextResponse.json({ message: "Watchlist deleted successfully" }); return addCorsHeaders(response, request);
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Server error" }, { status: 500 }); return addCorsHeaders(response, request);
   }
 }

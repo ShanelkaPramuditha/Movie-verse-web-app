@@ -1,14 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { addCorsHeaders, handleCorsPreflightRequest } from "@/lib/utils/cors";
 import connectDB from "@/lib/db";
 import { WatchList } from "@/lib/models/watchlist";
 import { v4 as uuidv4 } from "uuid";
 import { getAuthSession } from "@/lib/auth";
 
-export async function POST(req: Request) {
+
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
+export async function POST(request: NextRequest, req: Request) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
     }
 
     await connectDB(); // Connect to database
@@ -16,10 +23,10 @@ export async function POST(req: Request) {
 
     const originalWatchlist = await WatchList.findById(watchlistId);
     if (!originalWatchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "WatchList not found" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
     // Check if a snapshot already exists
@@ -40,10 +47,10 @@ export async function POST(req: Request) {
           },
         }
       );
-      return NextResponse.json({
+      const response = NextResponse.json({
         message: "WatchList already shared!",
         shareUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/watchlist/shared/${existingSnapshot.shareToken}`,
-      });
+      }); return addCorsHeaders(response, request);
     }
 
     // Create a new snapshot only if none exist
@@ -60,15 +67,15 @@ export async function POST(req: Request) {
 
     await snapshotWatchlist.save();
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       message: "WatchList shared successfully!",
       shareUrl: `${process.env.NEXT_PUBLIC_SERVER_URL}/watchlist/shared/${snapshotWatchlist.shareToken}`,
-    });
+    }); return addCorsHeaders(response, request);
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    );
+    ); return addCorsHeaders(response, request);
   }
 }

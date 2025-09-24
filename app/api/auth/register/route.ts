@@ -1,8 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from "next/server";
+import { addCorsHeaders, handleCorsPreflightRequest } from "@/lib/utils/cors";
 import connectDB from '@/lib/db';
 import User from '@/lib/models/user';
 
-export async function POST(req: Request) {
+
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
+export async function POST(request: NextRequest, req: Request) {
   try {
     const { email, password, name, role = 'user' } = await req.json();
 
@@ -10,10 +17,10 @@ export async function POST(req: Request) {
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: 'User already exists' },
         { status: 400 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
     const user = await User.create({
@@ -23,7 +30,7 @@ export async function POST(req: Request) {
       role,
     });
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       {
         user: {
           id: user._id,
@@ -33,11 +40,11 @@ export async function POST(req: Request) {
         },
       },
       { status: 201 }
-    );
+    ); return addCorsHeaders(response, request);
   } catch (error: any) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: error.message },
       { status: 500 }
-    );
+    ); return addCorsHeaders(response, request);
   }
 }

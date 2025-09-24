@@ -1,18 +1,18 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { addCorsHeaders, handleCorsPreflightRequest } from "@/lib/utils/cors";
 import { getAuthSession } from "@/lib/auth";
 import connectDB from "@/lib/db";
 import { WatchList } from "@/lib/models/watchlist";
 import mongoose from "mongoose";
 
 // Get item by id
-// export async function GET(
-//   req: Request,
+// export async function GET(request: NextRequest, //   req: Request,
 //   { params }: { params: { id: string; itemId: string } }
 // ) {
 //   try {
 //     const session = await getAuthSession();
 //     if (!session) {
-//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//       const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
 //     }
 
 //     await connectDB();
@@ -22,10 +22,10 @@ import mongoose from "mongoose";
 //     });
 
 //     if (!watchlist) {
-//       return NextResponse.json(
+//       const response = NextResponse.json(
 //         { error: "Watchlist not found" },
 //         { status: 404 }
-//       );
+//       ); return addCorsHeaders(response, request);
 //     }
 
 //     const item = watchlist.items.find(
@@ -33,24 +33,29 @@ import mongoose from "mongoose";
 //     );
 
 //     if (!item) {
-//       return NextResponse.json({ error: "Item not found" }, { status: 404 });
+//       const response = NextResponse.json({ error: "Item not found" }, { status: 404 }); return addCorsHeaders(response, request);
 //     }
 
-//     return NextResponse.json(item);
+//     const response = NextResponse.json(item); return addCorsHeaders(response, request);
 //   } catch (error) {
-//     return NextResponse.json({ error: "Server error" }, { status: 500 });
+//     const response = NextResponse.json({ error: "Server error" }, { status: 500 }); return addCorsHeaders(response, request);
 //   }
 // }
 
 // Update item by id
-export async function PUT(
-  req: Request,
+
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
+export async function PUT(request: NextRequest, req: Request,
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
     }
 
     const { id, itemId } = await params;
@@ -78,27 +83,26 @@ export async function PUT(
     );
 
     if (!watchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Watchlist or item not found" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
-    return NextResponse.json(watchlist);
+    const response = NextResponse.json(watchlist); return addCorsHeaders(response, request);
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Server error" }, { status: 500 }); return addCorsHeaders(response, request);
   }
 }
 
 // Remove item from watchlist
-export async function DELETE(
-  req: Request,
+export async function DELETE(request: NextRequest, req: Request,
   { params }: { params: Promise<{ id: string; itemId: string }> }
 ) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      const response = NextResponse.json({ error: "Unauthorized" }, { status: 401 }); return addCorsHeaders(response, request);
     }
 
     const { id, itemId } = await params;
@@ -115,14 +119,14 @@ export async function DELETE(
     );
 
     if (!watchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Watchlist not found" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
-    return NextResponse.json(watchlist);
+    const response = NextResponse.json(watchlist); return addCorsHeaders(response, request);
   } catch (error) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Server error" }, { status: 500 }); return addCorsHeaders(response, request);
   }
 }

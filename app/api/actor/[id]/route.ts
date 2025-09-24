@@ -1,24 +1,31 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import {
   sanitizeObject,
   containsPII,
   logPIIDetection,
 } from "@/lib/utils/sanitize";
+import { addCorsHeaders, handleCorsPreflightRequest } from "@/lib/utils/cors";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
 export async function GET(
-  req: Request,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
 
   if (!id) {
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Actor ID is required" },
       { status: 400 }
     );
+    return addCorsHeaders(response, req);
   }
 
   try {
@@ -53,7 +60,7 @@ export async function GET(
     }
 
     // Return combined response
-    return NextResponse.json({
+    const response = NextResponse.json({
       id: sanitizedActorData.id,
       name: sanitizedActorData.name,
       birthday: sanitizedActorData.birthday,
@@ -70,8 +77,10 @@ export async function GET(
         poster: `https://image.tmdb.org/t/p/w500${movie.poster_path}`,
       })),
     });
+    return addCorsHeaders(response, req);
   } catch (error) {
     console.error("Error fetching actor details:", error);
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+    const response = NextResponse.json({ error: "Server error" }, { status: 500 });
+    return addCorsHeaders(response, req);
   }
 }

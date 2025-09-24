@@ -1,10 +1,16 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { addCorsHeaders, handleCorsPreflightRequest } from "@/lib/utils/cors";
 import connectDB from "@/lib/db";
 import { WatchList } from "@/lib/models/watchlist";
 
 // Get watchlist id by share token
-export async function GET(
-  req: Request,
+
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
+export async function GET(request: NextRequest, req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
@@ -16,17 +22,17 @@ export async function GET(
       isSnapshot: true,
     });
     if (!watchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Watchlist not found or expired" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
-    return NextResponse.json(watchlist);
+    const response = NextResponse.json(watchlist); return addCorsHeaders(response, request);
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    );
+    ); return addCorsHeaders(response, request);
   }
 }

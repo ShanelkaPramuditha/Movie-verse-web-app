@@ -1,22 +1,29 @@
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
+import { addCorsHeaders, handleCorsPreflightRequest } from "@/lib/utils/cors";
 import connectDB from "@/lib/db";
 import { WatchList } from "@/lib/models/watchlist";
 import { getAuthSession } from "@/lib/auth";
 
-export async function POST(req: Request) {
+
+// Handle CORS preflight requests
+export async function OPTIONS(request: NextRequest) {
+  return handleCorsPreflightRequest(request);
+}
+
+export async function POST(request: NextRequest, req: Request) {
   try {
     const session = await getAuthSession();
     if (!session) {
-      return NextResponse.json({ error: "Please log in" }, { status: 401 });
+      const response = NextResponse.json({ error: "Please log in" }, { status: 401 }); return addCorsHeaders(response, request);
     }
     await connectDB();
     const { shareToken } = await req.json();
     const snapshot = await WatchList.findOne({ shareToken, isSnapshot: true });
     if (!snapshot) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         { error: "Shared watchlist not found or expired" },
         { status: 404 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
     let existingWatchlist = await WatchList.findOne({
@@ -26,12 +33,12 @@ export async function POST(req: Request) {
     });
 
     if (existingWatchlist) {
-      return NextResponse.json(
+      const response = NextResponse.json(
         {
           error: "Watchlist already exists!",
         },
         { status: 400 }
-      );
+      ); return addCorsHeaders(response, request);
     }
 
     // Create a new personal copy for the user
@@ -45,12 +52,12 @@ export async function POST(req: Request) {
 
     await newWatchlist.save();
 
-    return NextResponse.json({ message: "WatchList saved successfully!" });
+    const response = NextResponse.json({ message: "WatchList saved successfully!" }); return addCorsHeaders(response, request);
   } catch (error) {
     console.error(error);
-    return NextResponse.json(
+    const response = NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
-    );
+    ); return addCorsHeaders(response, request);
   }
 }
